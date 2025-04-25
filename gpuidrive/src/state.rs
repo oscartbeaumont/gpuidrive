@@ -75,8 +75,6 @@ impl State {
                             }
                         })
                         .collect();
-
-                    println!("{:?}", self.nodes); // TODO
                 }
                 Err(_) => self.nodes = vec![], // TODO: Proper error handling
             }

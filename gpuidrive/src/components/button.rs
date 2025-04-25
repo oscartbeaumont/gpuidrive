@@ -1,3 +1,5 @@
+use gpui::*;
+
 pub fn button(text: &str, on_click: impl Fn(&mut Window, &mut App) + 'static) -> impl IntoElement {
     div()
         .id(SharedString::from(text.to_string()))

@@ -254,7 +254,6 @@ impl RenderOnce for TableRow {
     }
 }
 
-// #[derive(IntoElement)]
 pub struct DataTable {
     /// Use `Rc` to share the same quote data across multiple items, avoid cloning.
     quotes: Vec<Rc<Quote>>,
@@ -322,6 +321,7 @@ impl DataTable {
             .bg(rgb(0xC0C0C0))
             .hover(|this| this.bg(rgb(0xA0A0A0)))
             .rounded_lg()
+            .size_full()
             .child(
                 canvas(
                     |_, _, _| (),
