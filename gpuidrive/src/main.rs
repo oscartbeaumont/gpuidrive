@@ -3,6 +3,7 @@ use input::TextInput;
 
 mod data_table;
 mod input;
+mod state;
 mod window;
 
 actions!(example, [QuitApp]);
@@ -50,28 +51,7 @@ fn main() {
                 },
                 |window, cx| {
                     cx.activate(false);
-                    cx.new(|cx| {
-                        let focus_handle = cx.focus_handle();
-                        focus_handle.focus(window);
-
-                        let text_input = cx.new(|cx| TextInput {
-                            focus_handle: cx.focus_handle(),
-                            content: "".into(),
-                            placeholder: "Type here...".into(),
-                            selected_range: 0..0,
-                            selection_reversed: false,
-                            marked_range: None,
-                            last_layout: None,
-                            last_bounds: None,
-                            is_selecting: false,
-                        });
-
-                        window::MainWindow {
-                            path: "/Users/oscar/Desktop".into(), // TODO: Don't hardcode
-                            text_input,
-                            focus_handle,
-                        }
-                    })
+                    cx.new(|cx| window::MainWindow::init(cx, window))
                 },
             )
             .unwrap();
@@ -91,11 +71,12 @@ fn main() {
         })
         .detach();
 
-        window
-            .update(cx, |view, window, cx| {
-                window.focus(&view.text_input.focus_handle(cx));
-                cx.activate(true);
-            })
-            .unwrap();
+        // TODO
+        // window
+        //     .update(cx, |view, window, cx| {
+        //         window.focus(&view.text_input.focus_handle(cx));
+        //         cx.activate(true);
+        //     })
+        //     .unwrap();
     });
 }

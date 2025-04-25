@@ -1,15 +1,38 @@
-use std::path::PathBuf;
-
 use gpui::*;
 
-use crate::{data_table::DataTable, input::TextInput};
+use crate::{data_table::DataTable, input::TextInput, state::State};
 
 actions!(example, [CloseWindow]);
 
 pub struct MainWindow {
-    pub path: PathBuf,
-    pub text_input: Entity<TextInput>,
-    pub focus_handle: FocusHandle,
+    state: Entity<State>,
+    text_input: Entity<TextInput>,
+    focus_handle: FocusHandle,
+}
+
+impl MainWindow {
+    pub fn init(cx: &mut Context<Self>, window: &mut Window) -> Self {
+        let focus_handle = cx.focus_handle();
+        focus_handle.focus(window);
+
+        let text_input = cx.new(|cx| TextInput {
+            focus_handle: cx.focus_handle(),
+            content: "".into(),
+            placeholder: "Type here...".into(),
+            selected_range: 0..0,
+            selection_reversed: false,
+            marked_range: None,
+            last_layout: None,
+            last_bounds: None,
+            is_selecting: false,
+        });
+
+        Self {
+            state: cx.new(|_| State::init()),
+            text_input,
+            focus_handle,
+        }
+    }
 }
 
 impl Render for MainWindow {
