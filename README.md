@@ -1,2 +1,3 @@
-# gpuidrive
-A Spacedrive clone built with GPUI
+# GPUIDrive
+
+A Spacedrive clone built with GPUI.
