@@ -1,6 +1,7 @@
 use gpui::*;
 use input::TextInput;
 
+mod components;
 mod data_table;
 mod input;
 mod state;

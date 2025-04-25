@@ -1,12 +1,12 @@
 use gpui::*;
 
-use crate::{data_table::DataTable, input::TextInput, state::State};
+use crate::{components::path_bar::PathBar, data_table::DataTable, input::TextInput, state::State};
 
 actions!(example, [CloseWindow]);
 
 pub struct MainWindow {
     state: Entity<State>,
-    text_input: Entity<TextInput>,
+    path_bar: Entity<PathBar>,
     focus_handle: FocusHandle,
 }
 
@@ -15,21 +15,11 @@ impl MainWindow {
         let focus_handle = cx.focus_handle();
         focus_handle.focus(window);
 
-        let text_input = cx.new(|cx| TextInput {
-            focus_handle: cx.focus_handle(),
-            content: "".into(),
-            placeholder: "Type here...".into(),
-            selected_range: 0..0,
-            selection_reversed: false,
-            marked_range: None,
-            last_layout: None,
-            last_bounds: None,
-            is_selecting: false,
-        });
+        let state = cx.new(|_| State::init());
 
         Self {
-            state: cx.new(|_| State::init()),
-            text_input,
+            path_bar: cx.new(|cx| PathBar::init(cx, state.clone())),
+            state,
             focus_handle,
         }
     }
@@ -51,7 +41,7 @@ impl Render for MainWindow {
             .gap_3()
             .bg(rgb(0x505050))
             .text_color(rgb(0xffffff))
-            .child(self.text_input.clone())
+            .child(self.path_bar.clone())
             .child(table)
     }
 }
