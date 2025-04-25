@@ -4,6 +4,8 @@ use gpui::*;
 
 use crate::{components::TextInput, state::State};
 
+use super::{button, button2};
+
 pub struct PathBar {
     state: Entity<State>,
     text_input: Entity<TextInput>,
@@ -57,8 +59,27 @@ impl PathBar {
 impl Render for PathBar {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            // .bg(rgb(0xff0000))
+            .flex()
+            .bg(rgb(0xffffff))
             .text_color(rgb(0x0))
-            .child(self.text_input.clone())
+            .child(div().w_full().child(self.text_input.clone()))
+            .child(button2("Up", !self.state.read(cx).can_go_up(), {
+                let state = self.state.clone();
+                move |_, cx| {
+                    state.update(cx, |state, cx| state.up(cx));
+                }
+            }))
+            .child(button2("Back", !self.state.read(cx).can_go_back(), {
+                let state = self.state.clone();
+                move |_, cx| {
+                    state.update(cx, |state, cx| state.go_back(cx));
+                }
+            }))
+            .child(button2("Forward", !self.state.read(cx).can_go_forward(), {
+                let state = self.state.clone();
+                move |_, cx| {
+                    state.update(cx, |state, cx| state.go_forward(cx));
+                }
+            }))
     }
 }

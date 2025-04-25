@@ -84,8 +84,7 @@ impl DataTable {
             .w(SCROLLBAR_THUMB_WIDTH)
             .bg(rgb(0xC0C0C0))
             .hover(|this| this.bg(rgb(0xA0A0A0)))
-            // .rounded_lg()
-            .size_full()
+            .rounded_lg()
             .child(
                 canvas(
                     |_, _, _| (),
@@ -174,7 +173,6 @@ impl Render for DataTable {
                         div()
                             .relative()
                             .size_full()
-                            .bg(rgb(0xff0000))
                             .child(
                                 // TODO: Is length reactive
                                 uniform_list(entity, "items", self.state.read(cx).nodes().len(), {

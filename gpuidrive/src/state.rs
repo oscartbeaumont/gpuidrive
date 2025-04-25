@@ -4,8 +4,11 @@ use chrono::{DateTime, Local};
 use gpui::{Context, EventEmitter};
 
 pub struct State {
-    path: PathBuf,
     nodes: Vec<Node>,
+
+    backward: Vec<PathBuf>,
+    forward: Vec<PathBuf>,
+    current: PathBuf,
 }
 
 /// Represents a node on the filesystem.
@@ -40,20 +43,22 @@ impl From<FileType> for NodeKind {
 }
 
 impl State {
-    pub fn init(cx: &mut Context<Self>) -> Self {
+    pub fn init() -> Self {
+        let current = PathBuf::from("/Users/oscar/Desktop"); // TODO: Don't hardcode username
+        let current = PathBuf::from("/Users/oscar/Library/pnpm/store/v10/files"); // TODO
+
         let mut this = Self {
-            path: Default::default(),
             nodes: Default::default(),
+            backward: Default::default(),
+            forward: Default::default(),
+            current,
         };
-        this.set_path(cx, PathBuf::from("/Users/oscar/Desktop")); // TODO: Don't hardcode username
-        this.set_path(
-            cx,
-            PathBuf::from("/Users/oscar/Library/pnpm/store/v10/files"),
-        );
+        this.load_content();
         this
     }
+
     pub fn path(&self) -> &PathBuf {
-        &self.path
+        &self.current
     }
 
     pub fn nodes(&self) -> &[Node] {
@@ -61,34 +66,82 @@ impl State {
     }
 
     pub fn set_path(&mut self, cx: &mut Context<Self>, path: PathBuf) {
-        let changed = self.path != path;
-        self.path = path;
-        cx.emit(PathChange);
-        cx.notify();
+        if self.current != path {
+            self.backward.push(self.current.clone());
+            self.forward.clear();
+            self.current = path;
 
-        if changed {
-            match std::fs::read_dir(&self.path) {
-                Ok(dir) => {
-                    // TODO: Error handing
-                    // TODO: Is this running off the main thread?
-                    self.nodes = dir
-                        .map(|entry| {
-                            let entry = entry.unwrap();
-                            let metadata = entry.metadata().unwrap();
+            cx.emit(PathChange);
+            cx.notify();
 
-                            Node {
-                                path: entry.path(),
-                                name: entry.file_name(),
-                                kind: entry.file_type().unwrap().into(),
-                                size: metadata.size(),
-                                created: metadata.created().unwrap().into(),
-                                modified: metadata.modified().unwrap().into(),
-                            }
-                        })
-                        .collect();
-                }
-                Err(_) => self.nodes = vec![], // TODO: Proper error handling
+            self.load_content();
+        }
+    }
+
+    fn load_content(&mut self) {
+        match std::fs::read_dir(self.path()) {
+            Ok(dir) => {
+                // TODO: Error handing
+                // TODO: Is this running off the main thread?
+                self.nodes = dir
+                    .map(|entry| {
+                        let entry = entry.unwrap();
+                        let metadata = entry.metadata().unwrap();
+
+                        Node {
+                            path: entry.path(),
+                            name: entry.file_name(),
+                            kind: entry.file_type().unwrap().into(),
+                            size: metadata.size(),
+                            created: metadata.created().unwrap().into(),
+                            modified: metadata.modified().unwrap().into(),
+                        }
+                    })
+                    .collect();
             }
+            Err(_) => self.nodes = vec![], // TODO: Proper error handling
+        }
+    }
+
+    pub fn can_go_back(&self) -> bool {
+        !self.backward.is_empty()
+    }
+
+    pub fn go_back(&mut self, cx: &mut Context<Self>) {
+        if let Some(previous) = self.backward.pop() {
+            self.forward.push(self.current.clone());
+            self.current = previous;
+
+            cx.emit(PathChange);
+            cx.notify();
+
+            self.load_content();
+        }
+    }
+
+    pub fn can_go_forward(&self) -> bool {
+        !self.forward.is_empty()
+    }
+
+    pub fn go_forward(&mut self, cx: &mut Context<Self>) {
+        if let Some(previous) = self.forward.pop() {
+            self.backward.push(self.current.clone());
+            self.current = previous;
+
+            cx.emit(PathChange);
+            cx.notify();
+
+            self.load_content();
+        }
+    }
+
+    pub fn can_go_up(&self) -> bool {
+        self.current.parent().is_some()
+    }
+
+    pub fn up(&mut self, cx: &mut Context<Self>) {
+        if let Some(parent) = self.current.parent() {
+            self.set_path(cx, parent.to_path_buf());
         }
     }
 }
