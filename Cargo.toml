@@ -1,18 +1,3 @@
-[package]
-name = "gpui-demo"
-version = "0.0.0"
-edition = "2024"
-publish = false
-
-[package.metadata.packager]
-before-packaging-command = "cargo build --release"
-
-[dependencies]
-# TODO: Lock to commit
-gpui = { git = "https://github.com/zed-industries/zed" }
-reqwest_client = { git = "https://github.com/zed-industries/zed" }
-anyhow = "1.0.98"
-env_logger = "0.11.8"
-futures = "0.3.31"
-rand = "0.9.1"
-unicode-segmentation = "1.12.0"
+[workspace]
+resolver = "3"
+members = ["./gpuidrive", "./demo"]

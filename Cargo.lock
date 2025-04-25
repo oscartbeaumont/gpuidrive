@@ -926,7 +926,7 @@ dependencies = [
 [[package]]
 name = "collections"
 version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
 dependencies = [
  "indexmap",
  "rustc-hash 2.1.1",
@@ -1250,6 +1250,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c297a1c74b71ae29df00c3e22dd9534821d60eb9af5a0192823fa2acea70c2a"
 
 [[package]]
+name = "demo"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "env_logger",
+ "futures",
+ "gpui",
+ "rand 0.9.1",
+ "reqwest_client",
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "derive_more"
 version = "0.99.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1265,7 +1278,7 @@ dependencies = [
 [[package]]
 name = "derive_refineable"
 version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2014,7 +2027,7 @@ dependencies = [
 [[package]]
 name = "gpui"
 version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
 dependencies = [
  "anyhow",
  "as-raw-xcb-connection",
@@ -2104,7 +2117,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "gpui-demo"
+name = "gpui_macros"
+version = "0.1.0"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+ "workspace-hack",
+]
+
+[[package]]
+name = "gpuidrive"
 version = "0.0.0"
 dependencies = [
  "anyhow",
@@ -2114,17 +2138,6 @@ dependencies = [
  "rand 0.9.1",
  "reqwest_client",
  "unicode-segmentation",
-]
-
-[[package]]
-name = "gpui_macros"
-version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
- "workspace-hack",
 ]
 
 [[package]]
@@ -2285,7 +2298,7 @@ dependencies = [
 [[package]]
 name = "http_client"
 version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
 dependencies = [
  "anyhow",
  "bytes",
@@ -2302,7 +2315,7 @@ dependencies = [
 [[package]]
 name = "http_client_tls"
 version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
 dependencies = [
  "rustls",
  "rustls-platform-verifier",
@@ -2997,7 +3010,7 @@ dependencies = [
 [[package]]
 name = "media"
 version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
 dependencies = [
  "anyhow",
  "bindgen 0.71.1",
@@ -4140,7 +4153,7 @@ dependencies = [
 [[package]]
 name = "refineable"
 version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
 dependencies = [
  "derive_refineable",
  "workspace-hack",
@@ -4225,7 +4238,7 @@ dependencies = [
 [[package]]
 name = "reqwest_client"
 version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
 dependencies = [
  "anyhow",
  "bytes",
@@ -4641,7 +4654,7 @@ checksum = "0f7d95a54511e0c7be3f51e8867aa8cf35148d7b9445d44de2f943e2b206e749"
 [[package]]
 name = "semantic_version"
 version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
 dependencies = [
  "anyhow",
  "serde",
@@ -4944,7 +4957,7 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 [[package]]
 name = "sum_tree"
 version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
 dependencies = [
  "arrayvec",
  "log",
@@ -5664,7 +5677,7 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 [[package]]
 name = "util"
 version = "0.1.0"
-source = "git+https://github.com/zed-industries/zed#187f8516137d6c0e405225441930164c9eb0aa09"
+source = "git+https://github.com/zed-industries/zed?rev=5f9c91d05a137e6db2e398fc3fabedeb9ed82b00#5f9c91d05a137e6db2e398fc3fabedeb9ed82b00"
 dependencies = [
  "anyhow",
  "async-fs",
