@@ -1,7 +1,8 @@
 use gpui::*;
 use human_bytes::human_bytes;
+use opener::open;
 
-use crate::state::State;
+use crate::state::{NodeKind, State};
 
 #[derive(IntoElement)]
 pub struct TableRow {
@@ -66,18 +67,23 @@ impl RenderOnce for TableRow {
             .px_2()
             .w_full()
             .children(FIELDS.map(|(key, width)| self.render_cell(key, relative(width), cx)))
-            .on_click(move |_, window, cx| {
-                let path = self
-                    .state
-                    .read(cx)
-                    .nodes()
-                    .get(self.ix)
-                    .unwrap()
-                    .path
-                    .clone();
+            .on_click(move |event, window, cx| {
+                let node = self.state.read(cx).nodes().get(self.ix).unwrap();
 
-                self.state
-                    .update(cx, move |state: &mut State, cx| state.set_path(cx, path));
+                match node.kind {
+                    NodeKind::Directory
+                        if !(event.down.modifiers.platform || event.down.modifiers.control) =>
+                    {
+                        let path = node.path.clone();
+
+                        self.state
+                            .update(cx, move |state: &mut State, cx| state.set_path(cx, path));
+                    }
+                    NodeKind::File | NodeKind::Directory => {
+                        open(node.path.clone()).unwrap();
+                    }
+                    NodeKind::Unknown => {}
+                }
             })
     }
 }

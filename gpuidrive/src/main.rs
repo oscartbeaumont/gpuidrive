@@ -9,6 +9,7 @@ actions!(example, [QuitApp]);
 fn main() {
     Application::new().run(|cx: &mut App| {
         cx.bind_keys([
+            KeyBinding::new("cmd-q", QuitApp, None),
             // Window actions
             KeyBinding::new("cmd-q", QuitApp, None),
             KeyBinding::new("cmd-w", window::CloseWindow, None),
