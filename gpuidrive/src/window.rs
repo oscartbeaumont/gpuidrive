@@ -1,10 +1,14 @@
+use std::path::PathBuf;
+
 use gpui::*;
 
-use crate::data_table::DataTable;
+use crate::{data_table::DataTable, input::TextInput};
 
 actions!(example, [CloseWindow]);
 
 pub struct MainWindow {
+    pub path: PathBuf,
+    pub text_input: Entity<TextInput>,
     pub focus_handle: FocusHandle,
 }
 
@@ -23,19 +27,8 @@ impl Render for MainWindow {
             .flex_col()
             .gap_3()
             .bg(rgb(0x505050))
-            .justify_center()
-            .items_center()
-            .shadow_lg()
-            .border_1()
-            .border_color(rgb(0x0000ff))
-            .text_xl()
             .text_color(rgb(0xffffff))
-            .child(
-                "Closing this window with cmd-w or the traffic lights should quit the application!",
-            )
-            .child(button("Testing", |window, _| {
-                println!("Hello World!");
-            }))
+            .child(self.text_input.clone())
             .child(table)
     }
 }
