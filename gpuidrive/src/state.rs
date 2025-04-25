@@ -13,12 +13,20 @@ impl State {
             files: vec![],
         }
     }
+    pub fn path(&self) -> &PathBuf {
+        &self.path
+    }
 
-    pub fn load_files(&mut self) {
-        // TODO: Error handing + run off the main thread
-        self.files = std::fs::read_dir(&self.path)
-            .unwrap()
-            .map(|entry| entry.unwrap().file_name().into_string().unwrap())
-            .collect();
+    pub fn set_path(&mut self, path: PathBuf) {
+        let changed = self.path != path;
+        self.path = path;
+
+        if changed {
+            // TODO: Error handing + run off the main thread
+            self.files = std::fs::read_dir(&self.path)
+                .unwrap()
+                .map(|entry| entry.unwrap().file_name().into_string().unwrap())
+                .collect();
+        }
     }
 }

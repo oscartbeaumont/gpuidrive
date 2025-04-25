@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use gpui::*;
 
 use crate::{input::TextInput, state::State};
@@ -21,15 +23,36 @@ impl PathBar {
             is_selecting: false,
         });
 
-        Self {
-            state: cx.new(|_| State::init()),
-            text_input,
-        }
+        cx.subscribe(&text_input, {
+            let state = state.clone();
+
+            move |subscriber, _emitter, event, cx| {
+                println!("ON CHANGE {:?}", &event.0);
+
+                state.update(cx, |state, cx| {
+                    // TODO: This won't handle non-utf8 paths
+                    state.set_path(PathBuf::from(event.0.to_string()));
+                });
+            }
+        })
+        .detach();
+
+        Self { state, text_input }
     }
 }
 
 impl Render for PathBar {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        div().text_color(rgb(0x0)).child(self.text_input.clone())
+        div()
+            .text_color(rgb(0x0))
+            .child(self.text_input.clone())
+            .child(
+                self.state
+                    .read(cx)
+                    .path()
+                    // TODO: Don't do on every render
+                    .to_string_lossy()
+                    .to_string(),
+            )
     }
 }

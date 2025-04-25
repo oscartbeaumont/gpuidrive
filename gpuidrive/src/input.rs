@@ -2,10 +2,10 @@ use std::ops::Range;
 
 use gpui::{
     App, Bounds, ClipboardItem, Context, CursorStyle, ElementId, ElementInputHandler, Entity,
-    EntityInputHandler, FocusHandle, Focusable, GlobalElementId, LayoutId, MouseButton,
-    MouseDownEvent, MouseMoveEvent, MouseUpEvent, PaintQuad, Pixels, Point, ShapedLine,
-    SharedString, Style, TextRun, UTF16Selection, UnderlineStyle, Window, actions, div, fill, hsla,
-    point, prelude::*, px, relative, rgb, rgba, size, white,
+    EntityInputHandler, EventEmitter, FocusHandle, Focusable, GlobalElementId, LayoutId,
+    MouseButton, MouseDownEvent, MouseMoveEvent, MouseUpEvent, PaintQuad, Pixels, Point,
+    ShapedLine, SharedString, Style, TextRun, UTF16Selection, UnderlineStyle, Window, actions, div,
+    fill, hsla, point, prelude::*, px, relative, rgb, rgba, size, white,
 };
 use unicode_segmentation::*;
 
@@ -313,6 +313,7 @@ impl EntityInputHandler for TextInput {
                 .into();
         self.selected_range = range.start + new_text.len()..range.start + new_text.len();
         self.marked_range.take();
+        cx.emit(OnChange(self.content.clone()));
         cx.notify();
     }
 
@@ -596,3 +597,7 @@ impl Focusable for TextInput {
         self.focus_handle.clone()
     }
 }
+
+pub struct OnChange(pub SharedString);
+
+impl EventEmitter<OnChange> for TextInput {}
