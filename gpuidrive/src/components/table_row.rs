@@ -67,7 +67,7 @@ impl RenderOnce for TableRow {
             .px_2()
             .w_full()
             .children(FIELDS.map(|(key, width)| self.render_cell(key, relative(width), cx)))
-            .on_click(move |event, window, cx| {
+            .on_click(move |event, _, cx| {
                 let node = self.state.read(cx).nodes().get(self.ix).unwrap();
 
                 match node.kind {
