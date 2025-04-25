@@ -140,7 +140,7 @@ impl Quote {
 }
 
 #[derive(IntoElement)]
-struct TableRow {
+pub struct TableRow {
     ix: usize,
     quote: Rc<Quote>,
 }
@@ -254,7 +254,8 @@ impl RenderOnce for TableRow {
     }
 }
 
-struct DataTable {
+// #[derive(IntoElement)]
+pub struct DataTable {
     /// Use `Rc` to share the same quote data across multiple items, avoid cloning.
     quotes: Vec<Rc<Quote>>,
     visible_range: Range<usize>,
@@ -264,7 +265,7 @@ struct DataTable {
 }
 
 impl DataTable {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             quotes: Vec::new(),
             visible_range: 0..0,
@@ -273,7 +274,7 @@ impl DataTable {
         }
     }
 
-    fn generate(&mut self) {
+    pub fn generate(&mut self) {
         self.quotes = (0..TOTAL_ITEMS).map(|_| Rc::new(Quote::random())).collect();
     }
 
@@ -450,30 +451,4 @@ impl Render for DataTable {
                     ),
             )
     }
-}
-
-fn main() {
-    Application::new().run(|cx: &mut App| {
-        cx.open_window(
-            WindowOptions {
-                focus: true,
-                window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
-                    None,
-                    size(px(1280.0), px(1000.0)),
-                    cx,
-                ))),
-                ..Default::default()
-            },
-            |_, cx| {
-                cx.new(|_| {
-                    let mut table = DataTable::new();
-                    table.generate();
-                    table
-                })
-            },
-        )
-        .unwrap();
-
-        cx.activate(true);
-    });
 }

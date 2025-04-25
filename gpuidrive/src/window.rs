@@ -1,5 +1,7 @@
 use gpui::*;
 
+use crate::data_table::DataTable;
+
 actions!(example, [CloseWindow]);
 
 pub struct MainWindow {
@@ -7,7 +9,13 @@ pub struct MainWindow {
 }
 
 impl Render for MainWindow {
-    fn render(&mut self, window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let table = cx.new(|cx| {
+            let mut table = DataTable::new();
+            table.generate();
+            table
+        });
+
         div()
             .on_action(|_: &CloseWindow, window, _| window.remove_window())
             .track_focus(&self.focus_handle)
@@ -28,6 +36,7 @@ impl Render for MainWindow {
             .child(button("Testing", |window, _| {
                 println!("Hello World!");
             }))
+            .child(table)
     }
 }
 

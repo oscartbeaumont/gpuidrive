@@ -1,13 +1,12 @@
 use gpui::*;
 
+mod data_table;
 mod window;
 
 actions!(example, [QuitApp]);
 
 fn main() {
     Application::new().run(|cx: &mut App| {
-        let bounds = Bounds::centered(None, size(px(500.), px(500.0)), cx);
-
         cx.bind_keys([KeyBinding::new("cmd-q", QuitApp, None)]);
         cx.on_action(|_: &QuitApp, cx| cx.quit());
 
@@ -21,7 +20,12 @@ fn main() {
 
         cx.open_window(
             WindowOptions {
-                window_bounds: Some(WindowBounds::Windowed(bounds)),
+                focus: true,
+                window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
+                    None,
+                    size(px(1280.0), px(1000.0)),
+                    cx,
+                ))),
                 ..Default::default()
             },
             |window, cx| {
