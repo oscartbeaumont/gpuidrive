@@ -10,12 +10,12 @@ pub struct State {
 /// Represents a node on the filesystem.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Node {
-    path: PathBuf,
-    name: OsString,
-    kind: NodeKind,
-    size: u64,
-    created: DateTime<Local>,
-    modified: DateTime<Local>,
+    pub path: PathBuf,
+    pub name: OsString,
+    pub kind: NodeKind,
+    pub size: u64,
+    pub created: DateTime<Local>,
+    pub modified: DateTime<Local>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -45,10 +45,15 @@ impl State {
             nodes: Default::default(),
         };
         this.set_path(PathBuf::from("/Users/oscar/Desktop")); // TODO: Don't hardcode username
+        this.set_path(PathBuf::from("/Users/oscar/Library/pnpm/store/v10/files"));
         this
     }
     pub fn path(&self) -> &PathBuf {
         &self.path
+    }
+
+    pub fn nodes(&self) -> &[Node] {
+        &self.nodes
     }
 
     pub fn set_path(&mut self, path: PathBuf) {

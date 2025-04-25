@@ -1,5 +1,6 @@
 use std::{
     ops::Range,
+    path::PathBuf,
     rc::Rc,
     time::{Duration, Instant},
 };
@@ -18,69 +19,29 @@ const SCROLLBAR_THUMB_HEIGHT: Pixels = px(100.);
 
 #[derive(IntoElement)]
 pub struct TableRow {
-    // TODO: Is this what we want???
     ix: usize,
-    quote: Rc<Node>,
+    state: Entity<State>,
 }
+
 impl TableRow {
-    fn new(ix: usize, quote: Rc<Node>) -> Self {
-        Self { ix, quote }
+    fn new(ix: usize, state: Entity<State>) -> Self {
+        Self { ix, state }
     }
 
-    fn render_cell(&self, key: &str, width: Pixels) -> impl IntoElement {
+    fn render_cell(&self, key: &str, width: Pixels, cx: &mut App) -> impl IntoElement + use<> {
+        let this = self.state.read(cx).nodes().get(self.ix).unwrap(); // TODO
+
         div()
             .whitespace_nowrap()
             .truncate()
             .w(width)
             .px_1()
             .child(match key {
-                // "id" => div().child(format!("{}", self.ix)),
-                // "symbol" => div().child(self.quote.symbol.clone()),
-                // "name" => div().child(self.quote.name.clone()),
-                // "last_done" => div()
-                //     .text_color(color)
-                //     .child(format!("{:.3}", self.quote.last_done)),
-                // "prev_close" => div()
-                //     .text_color(color)
-                //     .child(format!("{:.3}", self.quote.prev_close)),
-                // "change" => div()
-                //     .text_color(color)
-                //     .child(format!("{:.2}%", self.quote.change())),
-                // "timestamp" => div()
-                //     .text_color(color)
-                //     .child(format!("{:?}", self.quote.timestamp.elapsed().as_secs())),
-                // "open" => div()
-                //     .text_color(color)
-                //     .child(format!("{:.2}", self.quote.open)),
-                // "low" => div()
-                //     .text_color(color)
-                //     .child(format!("{:.2}", self.quote.low)),
-                // "high" => div()
-                //     .text_color(color)
-                //     .child(format!("{:.2}", self.quote.high)),
-                // "ttm" => div()
-                //     .text_color(color)
-                //     .child(format!("{:.2}", self.quote.ttm)),
-                // "eps" => div()
-                //     .text_color(color)
-                //     .child(format!("{:.2}", self.quote.eps)),
-                // "market_cap" => {
-                //     div().child(format!("{:.2} M", self.quote.market_cap / 1_000_000.0))
-                // }
-                // "float_cap" => div().child(format!("{:.2} M", self.quote.float_cap / 1_000_000.0)),
-                // "turnover" => div().child(format!("{:.2} M", self.quote.turnover / 1_000_000.0)),
-                // "volume" => div().child(format!("{:.2} M", self.quote.volume as f64 / 1_000_000.0)),
-                // "turnover_ratio" => div().child(format!("{:.2}%", self.quote.turnover_ratio())),
-                // "pe" => div().child(format!("{:.2}", self.quote.pe)),
-                // "pb" => div().child(format!("{:.2}", self.quote.pb)),
-                // "shares" => div().child(format!("{:.2}", self.quote.shares)),
-                // "dividend" => div().child(format!("{:.2}", self.quote.dividend)),
-                // "yield" => div().child(format!("{:.2}%", self.quote.dividend_yield)),
-                // "dividend_per_share" => {
-                //     div().child(format!("{:.2}", self.quote.dividend_per_share))
-                // }
-                // "dividend_date" => div().child(format!("{}", self.quote.dividend_date)),
-                // "dividend_payment" => div().child(format!("{:.2}", self.quote.dividend_payment)),
+                "name" => div().child(this.name.to_string_lossy().to_string()),
+                "kind" => div().child(format!("{:?}", this.kind)),
+                "size" => div().child(this.size.to_string()),
+                "created" => div().child(this.created.to_string()),
+                "modified" => div().child(this.modified.to_string()),
                 _ => div().child("--"),
             })
     }
@@ -95,8 +56,7 @@ const FIELDS: [(&str, f32); 5] = [
 ];
 
 impl RenderOnce for TableRow {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
-        // let color = self.quote.change_color();
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
         div()
             .flex()
             .flex_row()
@@ -109,14 +69,14 @@ impl RenderOnce for TableRow {
             })
             .py_0p5()
             .px_2()
-            .children(FIELDS.map(|(key, width)| self.render_cell(key, px(width))))
+            .children(FIELDS.map(|(key, width)| self.render_cell(key, px(width), cx)))
     }
 }
 
 pub struct DataTable {
     state: Entity<State>,
     /// Use `Rc` to share the same quote data across multiple items, avoid cloning.
-    nodes: Vec<Rc<Node>>,
+    // nodes: Vec<Rc<Node>>,
     visible_range: Range<usize>,
     scroll_handle: UniformListScrollHandle,
     /// The position in thumb bounds when dragging start mouse down.
@@ -127,7 +87,7 @@ impl DataTable {
     pub fn new(state: Entity<State>) -> Self {
         Self {
             state,
-            nodes: Vec::new(),
+            // nodes: Vec::new(),
             visible_range: 0..0,
             scroll_handle: UniformListScrollHandle::new(),
             drag_position: None,
@@ -240,16 +200,17 @@ impl Render for DataTable {
 
         div()
             .font_family(".SystemUIFont")
-            .bg(gpui::white())
+            // .bg(gpui::red())
             .text_sm()
             .size_full()
             // .p_4()
             // .gap_2()
             .flex()
             .flex_col()
+            // // TODO
             // .child(format!(
             //     "Total {} items, visible range: {:?}",
-            //     self.quotes.len(),
+            //     self.state.read(cx).nodes().len(),
             //     self.visible_range
             // ))
             .child(
@@ -285,26 +246,50 @@ impl Render for DataTable {
                             })),
                     )
                     .child(
-                        div()
-                            .relative()
-                            .size_full()
-                            .child(
-                                uniform_list(entity, "items", self.nodes.len(), {
-                                    move |this, range, _, _| {
-                                        this.visible_range = range.clone();
-                                        let mut items = Vec::with_capacity(range.end - range.start);
-                                        for i in range {
-                                            if let Some(quote) = this.nodes.get(i) {
-                                                items.push(TableRow::new(i, quote.clone()));
-                                            }
+                        div().relative().size_full().child(
+                            // TODO: Is length reactive
+                            uniform_list(entity, "items", self.state.read(cx).nodes().len(), {
+                                move |this, range, _, cx| {
+                                    this.visible_range = range.clone();
+                                    let mut items = Vec::with_capacity(range.end - range.start);
+                                    let mut nodes = this.state.read(cx).nodes().iter();
+                                    for i in range {
+                                        if let Some(node) = nodes.next() {
+                                            items.push(TableRow::new(i, this.state.clone()));
                                         }
-                                        items
                                     }
-                                })
-                                .size_full()
-                                .track_scroll(self.scroll_handle.clone()),
-                            )
-                            .child(self.render_scrollbar(window, cx)),
+
+                                    items
+                                }
+                            })
+                            .size_full()
+                            .track_scroll(self.scroll_handle.clone()),
+                            // uniform_list(
+                            //     cx.entity().clone(),
+                            //     "entries",
+                            //     1000,
+                            //     |this, range, _window, _cx| {
+                            //         let mut items = Vec::new();
+                            //         for ix in range {
+                            //             let item = ix + 1;
+
+                            //             items.push(TableRow::new(ix, this.state.clone()));
+                            //             // items.push(
+                            //             //     div()
+                            //             //         .id(ix)
+                            //             //         .px_2()
+                            //             //         .cursor_pointer()
+                            //             //         .on_click(move |_event, _window, _cx| {
+                            //             //             println!("clicked Item {item:?}");
+                            //             //         })
+                            //             //         .child(format!("Item {item}")),
+                            //             // );
+                            //         }
+                            //         items
+                            //     },
+                            // )
+                            // .h_full(),
+                        ), // .child(self.render_scrollbar(window, cx)),
                     ),
             )
     }
