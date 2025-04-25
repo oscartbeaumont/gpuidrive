@@ -54,7 +54,7 @@ fn main() {
             )
             .unwrap();
 
-        let view = window.update(cx, |_, _, cx| cx.entity()).unwrap();
+        // let view = window.update(cx, |_, _, cx| cx.entity()).unwrap();
         // cx.observe_keystrokes(move |ev, _, cx| {
         //     view.update(cx, |view, cx| {
         //         // view.recent_keystrokes.push(ev.keystroke.clone());
@@ -62,12 +62,12 @@ fn main() {
         //     })
         // })
         // .detach();
-        cx.on_keyboard_layout_change({
-            move |cx| {
-                window.update(cx, |_, _, cx| cx.notify()).ok();
-            }
-        })
-        .detach();
+        // cx.on_keyboard_layout_change({
+        //     move |cx| {
+        //         window.update(cx, |_, _, cx| cx.notify()).ok();
+        //     }
+        // })
+        // .detach();
 
         // TODO
         // window

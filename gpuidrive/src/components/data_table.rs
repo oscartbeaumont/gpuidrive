@@ -320,7 +320,7 @@ impl DataTable {
             .w(SCROLLBAR_THUMB_WIDTH)
             .bg(rgb(0xC0C0C0))
             .hover(|this| this.bg(rgb(0xA0A0A0)))
-            .rounded_lg()
+            // .rounded_lg()
             .size_full()
             .child(
                 canvas(
@@ -386,15 +386,15 @@ impl Render for DataTable {
             .bg(gpui::white())
             .text_sm()
             .size_full()
-            .p_4()
-            .gap_2()
+            // .p_4()
+            // .gap_2()
             .flex()
             .flex_col()
-            .child(format!(
-                "Total {} items, visible range: {:?}",
-                self.quotes.len(),
-                self.visible_range
-            ))
+            // .child(format!(
+            //     "Total {} items, visible range: {:?}",
+            //     self.quotes.len(),
+            //     self.visible_range
+            // ))
             .child(
                 div()
                     .flex()
@@ -403,7 +403,7 @@ impl Render for DataTable {
                     .overflow_hidden()
                     .border_1()
                     .border_color(rgb(0xE0E0E0))
-                    .rounded_sm()
+                    // .rounded_sm()
                     .child(
                         div()
                             .flex()

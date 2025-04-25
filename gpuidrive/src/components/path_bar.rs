@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use gpui::*;
 
-use crate::{components::text_input::TextInput, state::State};
+use crate::{components::TextInput, state::State};
 
 pub struct PathBar {
     state: Entity<State>,
@@ -42,7 +42,7 @@ impl PathBar {
 impl Render for PathBar {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .bg(rgb(0xff0000))
+            // .bg(rgb(0xff0000))
             .text_color(rgb(0x0))
             .child(self.text_input.clone())
     }

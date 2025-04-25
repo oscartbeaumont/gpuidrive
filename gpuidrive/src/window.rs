@@ -42,7 +42,6 @@ impl Render for MainWindow {
             .flex()
             .flex_col()
             .size_full()
-            .bg(rgb(0xff0000))
             .child(self.path_bar.clone())
             .child(table)
     }
