@@ -19,7 +19,7 @@ impl MainWindow {
         let focus_handle = cx.focus_handle();
         focus_handle.focus(window);
 
-        let state = cx.new(|cx| State::init());
+        let state = cx.new(|cx| State::init(cx));
         Self {
             path_bar: cx.new(|cx| PathBar::init(cx, state.clone())),
             data_table: cx.new(|cx| DataTable::new(state.clone())),

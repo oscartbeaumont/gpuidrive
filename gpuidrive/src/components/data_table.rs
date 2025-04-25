@@ -35,6 +35,7 @@ impl TableRow {
         width: DefiniteLength,
         cx: &mut App,
     ) -> impl IntoElement + use<> {
+        // TODO: Don't do this on a per-cell basis
         let this = self.state.read(cx).nodes().get(self.ix).unwrap(); // TODO
 
         div()
@@ -63,7 +64,10 @@ const FIELDS: [(&str, f32); 5] = [
 
 impl RenderOnce for TableRow {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        // let this = self.state.read(cx).nodes().get(self.ix).unwrap(); // TODO
+
         div()
+            .id(self.ix) // TODO: Should this be scoped to `TableRow` component instance??
             .flex()
             .flex_row()
             .border_b_1()
@@ -77,6 +81,19 @@ impl RenderOnce for TableRow {
             .px_2()
             .w_full()
             .children(FIELDS.map(|(key, width)| self.render_cell(key, relative(width), cx)))
+            .on_click(move |_, window, cx| {
+                let path = self
+                    .state
+                    .read(cx)
+                    .nodes()
+                    .get(self.ix)
+                    .unwrap()
+                    .path
+                    .clone();
+
+                self.state
+                    .update(cx, move |state: &mut State, cx| state.set_path(cx, path));
+            })
     }
 }
 

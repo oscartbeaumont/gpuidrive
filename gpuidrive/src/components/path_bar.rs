@@ -23,13 +23,28 @@ impl PathBar {
             is_selecting: false,
         });
 
+        // TODO: this is a 2 way data binding which is cringe
+
         cx.subscribe(&text_input, {
             let state = state.clone();
 
             move |subscriber, _emitter, event, cx| {
                 state.update(cx, |state, cx| {
                     // TODO: This won't handle non-utf8 paths
-                    state.set_path(PathBuf::from(event.0.to_string()));
+                    state.set_path(cx, PathBuf::from(event.0.to_string()));
+                });
+            }
+        })
+        .detach();
+
+        cx.subscribe(&state, {
+            let state = state.clone();
+            let text_input = text_input.clone();
+
+            move |subscriber, _emitter, event, cx| {
+                let path = state.read(cx).path().to_str().unwrap().to_string();
+                text_input.update(cx, |text_input, cx| {
+                    text_input.content = SharedString::new(path);
                 });
             }
         })

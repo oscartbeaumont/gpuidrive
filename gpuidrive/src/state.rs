@@ -1,6 +1,7 @@
 use std::{ffi::OsString, fs::FileType, os::unix::fs::MetadataExt, path::PathBuf};
 
 use chrono::{DateTime, Local};
+use gpui::{Context, EventEmitter};
 
 pub struct State {
     path: PathBuf,
@@ -39,13 +40,16 @@ impl From<FileType> for NodeKind {
 }
 
 impl State {
-    pub fn init() -> Self {
+    pub fn init(cx: &mut Context<Self>) -> Self {
         let mut this = Self {
             path: Default::default(),
             nodes: Default::default(),
         };
-        this.set_path(PathBuf::from("/Users/oscar/Desktop")); // TODO: Don't hardcode username
-        this.set_path(PathBuf::from("/Users/oscar/Library/pnpm/store/v10/files"));
+        this.set_path(cx, PathBuf::from("/Users/oscar/Desktop")); // TODO: Don't hardcode username
+        this.set_path(
+            cx,
+            PathBuf::from("/Users/oscar/Library/pnpm/store/v10/files"),
+        );
         this
     }
     pub fn path(&self) -> &PathBuf {
@@ -56,9 +60,11 @@ impl State {
         &self.nodes
     }
 
-    pub fn set_path(&mut self, path: PathBuf) {
+    pub fn set_path(&mut self, cx: &mut Context<Self>, path: PathBuf) {
         let changed = self.path != path;
         self.path = path;
+        cx.emit(PathChange);
+        cx.notify();
 
         if changed {
             match std::fs::read_dir(&self.path) {
@@ -86,3 +92,6 @@ impl State {
         }
     }
 }
+
+pub struct PathChange;
+impl EventEmitter<PathChange> for State {}
