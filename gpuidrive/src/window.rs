@@ -9,9 +9,7 @@ pub struct MainWindow {
 impl Render for MainWindow {
     fn render(&mut self, window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .on_action(|_: &CloseWindow, window, _| {
-                window.remove_window();
-            })
+            .on_action(|_: &CloseWindow, window, _| window.remove_window())
             .track_focus(&self.focus_handle)
             .flex()
             .flex_col()
