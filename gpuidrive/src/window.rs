@@ -32,6 +32,7 @@ impl MainWindow {
 impl Render for MainWindow {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
+            .font_family(".SystemUIFont")
             .on_action(|_: &CloseWindow, window, _| window.remove_window())
             .track_focus(&self.focus_handle)
             .flex()

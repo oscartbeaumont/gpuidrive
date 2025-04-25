@@ -6,9 +6,10 @@ use std::{
 };
 
 use gpui::{
-    App, Application, Bounds, Context, Entity, MouseDownEvent, MouseMoveEvent, MouseUpEvent,
-    Pixels, Point, Render, SharedString, UniformListScrollHandle, Window, WindowBounds,
-    WindowOptions, canvas, div, point, prelude::*, px, rgb, size, uniform_list,
+    App, Application, Bounds, Context, DefiniteLength, Entity, MouseDownEvent, MouseMoveEvent,
+    MouseUpEvent, Pixels, Point, Render, SharedString, UniformListScrollHandle, Window,
+    WindowBounds, WindowOptions, canvas, div, point, prelude::*, px, relative, rgb, size,
+    uniform_list,
 };
 
 use crate::state::{Node, State};
@@ -28,7 +29,12 @@ impl TableRow {
         Self { ix, state }
     }
 
-    fn render_cell(&self, key: &str, width: Pixels, cx: &mut App) -> impl IntoElement + use<> {
+    fn render_cell(
+        &self,
+        key: &str,
+        width: DefiniteLength,
+        cx: &mut App,
+    ) -> impl IntoElement + use<> {
         let this = self.state.read(cx).nodes().get(self.ix).unwrap(); // TODO
 
         div()
@@ -40,19 +46,19 @@ impl TableRow {
                 "name" => div().child(this.name.to_string_lossy().to_string()),
                 "kind" => div().child(format!("{:?}", this.kind)),
                 "size" => div().child(this.size.to_string()),
-                "created" => div().child(this.created.to_string()),
-                "modified" => div().child(this.modified.to_string()),
+                "created" => div().child(this.created.format("%B %d, %Y").to_string()),
+                "modified" => div().child(this.modified.format("%B %d, %Y").to_string()),
                 _ => div().child("--"),
             })
     }
 }
 
 const FIELDS: [(&str, f32); 5] = [
-    ("name", 64.),
-    ("kind", 64.),
-    ("size", 180.),
-    ("created", 80.),
-    ("modified", 80.),
+    ("name", 0.7),
+    ("kind", 0.07),
+    ("size", 0.05),
+    ("created", 0.09),
+    ("modified", 0.09),
 ];
 
 impl RenderOnce for TableRow {
@@ -69,7 +75,8 @@ impl RenderOnce for TableRow {
             })
             .py_0p5()
             .px_2()
-            .children(FIELDS.map(|(key, width)| self.render_cell(key, px(width), cx)))
+            .w_full()
+            .children(FIELDS.map(|(key, width)| self.render_cell(key, relative(width), cx)))
     }
 }
 
@@ -199,7 +206,7 @@ impl Render for DataTable {
         let entity = cx.entity();
 
         div()
-            .font_family(".SystemUIFont")
+            // .font_family(".SystemUIFont")
             // .bg(gpui::red())
             .text_sm()
             .size_full()
@@ -241,12 +248,12 @@ impl Render for DataTable {
                                     .flex_shrink_0()
                                     .truncate()
                                     .px_1()
-                                    .w(px(width))
+                                    .w(relative(width))
                                     .child(key.replace("_", " ").to_uppercase())
                             })),
                     )
                     .child(
-                        div().relative().size_full().child(
+                        div().relative().size_full().bg(rgb(0xff0000)).child(
                             // TODO: Is length reactive
                             uniform_list(entity, "items", self.state.read(cx).nodes().len(), {
                                 move |this, range, _, cx| {
