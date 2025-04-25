@@ -30,6 +30,6 @@ impl PathBar {
 
 impl Render for PathBar {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        div().child(self.text_input.clone())
+        div().text_color(rgb(0x0)).child(self.text_input.clone())
     }
 }

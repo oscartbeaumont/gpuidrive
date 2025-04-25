@@ -1,6 +1,6 @@
 use gpui::*;
 
-use crate::{components::path_bar::PathBar, data_table::DataTable, input::TextInput, state::State};
+use crate::{components::path_bar::PathBar, data_table::DataTable, state::State};
 
 actions!(example, [CloseWindow]);
 
