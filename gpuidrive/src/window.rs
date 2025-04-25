@@ -39,7 +39,6 @@ impl Render for MainWindow {
             .flex_col()
             .size_full()
             .child(self.path_bar.clone())
-            // .child(todo)
             .child(self.data_table.clone())
     }
 }
