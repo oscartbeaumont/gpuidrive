@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use gpui::*;
 use opener::open;
 
@@ -31,63 +33,71 @@ impl Render for QuickPreview {
         cx: &mut gpui::Context<Self>,
     ) -> impl gpui::IntoElement {
         if !self.visible {
-            return div();
+            return div().into_any();
         }
         let state = self.state.read(cx);
         let Some(selected) = state.selected() else {
             self.visible = false;
-            return div();
+            return div().into_any();
         };
-        let node = state.nodes().get(selected).unwrap();
+        let node = state.nodes().get(selected).unwrap().clone();
 
         div()
-            .absolute()
-            .inset_0()
-            .size_full()
-            .child(
-                div()
-                    .absolute()
-                    .inset_0()
-                    .size_full()
-                    .bg(gpui::black())
-                    .opacity(0.5),
+            .with_animation(
+                "loading-bg",
+                Animation::new(Duration::from_millis(100)),
+                move |this, delta| {
+                    this.absolute()
+                        .inset_0()
+                        .size_full()
+                        .child(
+                            div()
+                                .absolute()
+                                .inset_0()
+                                .size_full()
+                                .bg(black().opacity(delta)),
+                        )
+                        .child(
+                            div()
+                                .flex()
+                                .size_full()
+                                .items_center()
+                                .justify_center()
+                                .child(
+                                    div()
+                                        .w(relative(0.5))
+                                        .h(relative(0.5))
+                                        .bg(gpui::black().alpha(delta * 0.2))
+                                        .child(
+                                            div()
+                                                .flex()
+                                                .justify_center()
+                                                .text_color(white())
+                                                .bg(rgb(0x696969))
+                                                .child(node.name.to_string_lossy().to_string()),
+                                        )
+                                        .child(div().opacity(delta).child(match node.kind {
+                                            NodeKind::File => match node.path.extension() {
+                                                // TODO: Wayyy smarter matching
+                                                // TODO: Support more file types (video, audio, 3D model)
+                                                Some(s) if s == "png" => image_preview(&node),
+                                                Some(s) if s == "txt" => text_preview(&node),
+                                                _ => {
+                                                    placeholder_preview("Unknown File Type!".into())
+                                                }
+                                            },
+                                            NodeKind::Directory => placeholder_preview(
+                                                node.name.to_str().unwrap().to_string(),
+                                            ),
+                                            NodeKind::Unknown => {
+                                                placeholder_preview("Unknown File Type!".into())
+                                            }
+                                        })),
+                                ),
+                        )
+                },
             )
-            .child(
-                div()
-                    .flex()
-                    .size_full()
-                    .items_center()
-                    .justify_center()
-                    .child(
-                        div()
-                            .w(relative(0.5))
-                            .h(relative(0.5))
-                            .bg(gpui::black().alpha(0.2))
-                            .child(
-                                div()
-                                    .flex()
-                                    .justify_center()
-                                    .text_color(white())
-                                    .bg(rgb(0x696969))
-                                    .child(node.name.to_string_lossy().to_string()),
-                            )
-                            .child(match node.kind {
-                                NodeKind::File => match node.path.extension() {
-                                    // TODO: Wayyy smarter matching
-                                    // TODO: Support more file types (video, audio, 3D model)
-                                    Some(s) if s == "png" => image_preview(&node),
-                                    Some(s) if s == "txt" => text_preview(&node),
-                                    _ => placeholder_preview("Unknown File Type!".into()),
-                                },
-                                NodeKind::Directory => {
-                                    placeholder_preview(node.name.to_str().unwrap().to_string())
-                                }
-                                NodeKind::Unknown => {
-                                    placeholder_preview("Unknown File Type!".into())
-                                }
-                            }),
-                    ),
-            )
+            .into_any()
     }
 }
 
