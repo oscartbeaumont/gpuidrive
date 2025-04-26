@@ -2,7 +2,10 @@ use std::path::PathBuf;
 
 use gpui::*;
 
-use crate::{components::TextInput, state::State};
+use crate::{
+    components::TextInput,
+    state::{PathChange, State},
+};
 
 use super::{button, button2};
 
@@ -43,7 +46,7 @@ impl PathBar {
             let state = state.clone();
             let text_input = text_input.clone();
 
-            move |subscriber, _emitter, event, cx| {
+            move |subscriber, _emitter, event: &PathChange, cx| {
                 let path = state.read(cx).path().to_str().unwrap().to_string();
                 text_input.update(cx, |text_input, cx| {
                     text_input.content = SharedString::new(path);

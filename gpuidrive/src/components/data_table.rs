@@ -5,14 +5,9 @@ use std::{
     time::{Duration, Instant},
 };
 
-use gpui::{
-    App, Application, Bounds, Context, DefiniteLength, Entity, MouseDownEvent, MouseMoveEvent,
-    MouseUpEvent, Pixels, Point, Render, SharedString, UniformListScrollHandle, Window,
-    WindowBounds, WindowOptions, canvas, div, point, prelude::*, px, relative, rgb, size,
-    uniform_list,
-};
+use gpui::*;
 
-use crate::state::{Node, State};
+use crate::state::{FocusSelection, Node, State};
 
 use super::{TableRow, render_titles};
 
@@ -25,7 +20,7 @@ pub struct DataTable {
     /// Use `Rc` to share the same quote data across multiple items, avoid cloning.
     // nodes: Vec<Rc<Node>>,
     visible_range: Range<usize>,
-    scroll_handle: UniformListScrollHandle,
+    scroll: UniformListScrollHandle,
     /// The position in thumb bounds when dragging start mouse down.
     drag_position: Option<Point<Pixels>>,
 }
@@ -36,21 +31,21 @@ impl DataTable {
             state,
             // nodes: Vec::new(),
             visible_range: 0..0,
-            scroll_handle: UniformListScrollHandle::new(),
+            scroll: UniformListScrollHandle::new(),
             drag_position: None,
         }
     }
 
     fn table_bounds(&self) -> Bounds<Pixels> {
-        self.scroll_handle.0.borrow().base_handle.bounds()
+        self.scroll.0.borrow().base_handle.bounds()
     }
 
     fn scroll_top(&self) -> Pixels {
-        self.scroll_handle.0.borrow().base_handle.offset().y
+        self.scroll.0.borrow().base_handle.offset().y
     }
 
     fn scroll_height(&self) -> Pixels {
-        self.scroll_handle
+        self.scroll
             .0
             .borrow()
             .last_item_size
@@ -73,7 +68,7 @@ impl DataTable {
             (table_height - SCROLLBAR_THUMB_HEIGHT - px(4.)).max(px(4.)),
         );
         let entity = cx.entity();
-        let scroll_handle = self.scroll_handle.0.borrow().base_handle.clone();
+        let scroll_handle = self.scroll.0.borrow().base_handle.clone();
 
         div()
             .id("scrollbar")
@@ -103,6 +98,7 @@ impl DataTable {
                                 })
                             }
                         });
+
                         window.on_mouse_event({
                             let entity = entity.clone();
                             move |_: &MouseUpEvent, _, _, cx| {
@@ -143,6 +139,14 @@ impl DataTable {
 impl Render for DataTable {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let entity = cx.entity();
+
+        cx.subscribe(&self.state, |this, state, _: &FocusSelection, cx| {
+            let selection = state.read(cx).selected();
+            if let Some(selection) = selection {
+                this.scroll.scroll_to_item(selection, ScrollStrategy::Top);
+            }
+        })
+        .detach();
 
         div()
             // .font_family(".SystemUIFont")
@@ -190,7 +194,7 @@ impl Render for DataTable {
                                     }
                                 })
                                 .size_full()
-                                .track_scroll(self.scroll_handle.clone()),
+                                .track_scroll(self.scroll.clone()),
                             )
                             .child(self.render_scrollbar(window, cx)),
                     ),

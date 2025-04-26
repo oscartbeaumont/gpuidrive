@@ -2,7 +2,7 @@ use gpui::*;
 use human_bytes::human_bytes;
 use opener::open;
 
-use crate::state::{NodeKind, State};
+use crate::state::{Node, NodeKind, State};
 
 #[derive(IntoElement)]
 pub struct TableRow {
@@ -52,13 +52,17 @@ impl RenderOnce for TableRow {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
         // let this = self.state.read(cx).nodes().get(self.ix).unwrap(); // TODO
 
+        if Some(self.ix) == self.state.read(cx).selected() {}
+
         div()
             .id(self.ix) // TODO: Should this be scoped to `TableRow` component instance??
             .flex()
             .flex_row()
             .border_b_1()
             .border_color(rgb(0xE0E0E0))
-            .bg(if self.ix % 2 == 0 {
+            .bg(if Some(self.ix) == self.state.read(cx).selected() {
+                rgb(0xbababa)
+            } else if self.ix % 2 == 0 {
                 rgb(0xFFFFFF)
             } else {
                 rgb(0xFAFAFA)
@@ -68,23 +72,29 @@ impl RenderOnce for TableRow {
             .w_full()
             .children(FIELDS.map(|(key, width)| self.render_cell(key, relative(width), cx)))
             .on_click(move |event, _, cx| {
-                let node = self.state.read(cx).nodes().get(self.ix).unwrap();
+                let node = self.state.read(cx).nodes().get(self.ix).unwrap().clone();
 
-                match node.kind {
-                    NodeKind::Directory
-                        if !(event.down.modifiers.platform || event.down.modifiers.control) =>
-                    {
-                        let path = node.path.clone();
-
-                        self.state
-                            .update(cx, move |state: &mut State, cx| state.set_path(cx, path));
-                    }
-                    NodeKind::File | NodeKind::Directory => {
-                        open(node.path.clone()).unwrap();
-                    }
-                    NodeKind::Unknown => {}
-                }
+                open_node(
+                    &self.state,
+                    cx,
+                    node,
+                    event.down.modifiers.platform || event.down.modifiers.control,
+                );
             })
+    }
+}
+
+pub fn open_node(state: &Entity<State>, cx: &mut App, node: Node, force: bool) {
+    match node.kind {
+        NodeKind::Directory if !force => {
+            let path = node.path.clone();
+
+            state.update(cx, move |state: &mut State, cx| state.set_path(cx, path));
+        }
+        NodeKind::File | NodeKind::Directory => {
+            open(node.path.clone()).unwrap();
+        }
+        NodeKind::Unknown => {}
     }
 }
 

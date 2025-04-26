@@ -9,6 +9,8 @@ pub struct State {
     backward: Vec<PathBuf>,
     forward: Vec<PathBuf>,
     current: PathBuf,
+
+    selected: Option<usize>,
 }
 
 /// Represents a node on the filesystem.
@@ -52,6 +54,7 @@ impl State {
             backward: Default::default(),
             forward: Default::default(),
             current,
+            selected: None,
         };
         this.load_content();
         this
@@ -65,17 +68,56 @@ impl State {
         &self.nodes
     }
 
+    pub fn selected(&self) -> Option<usize> {
+        self.selected
+    }
+
     pub fn set_path(&mut self, cx: &mut Context<Self>, path: PathBuf) {
         if self.current != path {
             self.backward.push(self.current.clone());
             self.forward.clear();
             self.current = path;
 
+            self.selected = None;
+
             cx.emit(PathChange);
             cx.notify();
 
             self.load_content();
         }
+    }
+
+    pub fn next_selected(&mut self, cx: &mut Context<Self>) {
+        if let Some(selected) = self.selected {
+            if self.selected != Some(self.nodes.len() - 1) {
+                self.selected = Some(selected + 1);
+                cx.emit(FocusSelection);
+                cx.notify();
+            }
+        } else {
+            self.selected = Some(0);
+            cx.emit(FocusSelection);
+            cx.notify();
+        }
+    }
+
+    pub fn back_selected(&mut self, cx: &mut Context<Self>) {
+        if let Some(selected) = self.selected {
+            if self.selected != Some(0) {
+                self.selected = Some(selected - 1);
+                cx.emit(FocusSelection);
+                cx.notify();
+            }
+        } else {
+            self.selected = Some(0);
+            cx.emit(FocusSelection);
+            cx.notify();
+        }
+    }
+
+    pub fn clear_selection(&mut self, cx: &mut Context<Self>) {
+        self.selected = None;
+        cx.notify();
     }
 
     fn load_content(&mut self) {
@@ -111,6 +153,7 @@ impl State {
         if let Some(previous) = self.backward.pop() {
             self.forward.push(self.current.clone());
             self.current = previous;
+            self.selected = None;
 
             cx.emit(PathChange);
             cx.notify();
@@ -148,3 +191,6 @@ impl State {
 
 pub struct PathChange;
 impl EventEmitter<PathChange> for State {}
+
+pub struct FocusSelection;
+impl EventEmitter<FocusSelection> for State {}
