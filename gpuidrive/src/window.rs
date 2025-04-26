@@ -1,7 +1,7 @@
 use gpui::*;
 
 use crate::{
-    components::{DataTable, PathBar, Preview, open_node},
+    components::{DataTable, PathBar, QuickPreview, open_node},
     state::State,
 };
 
@@ -11,7 +11,7 @@ pub struct MainWindow {
     state: Entity<State>,
     path_bar: Entity<PathBar>,
     data_table: Entity<DataTable>,
-    preview: Entity<Preview>,
+    quick_preview: Entity<QuickPreview>,
     focus: FocusHandle,
 }
 
@@ -24,7 +24,7 @@ impl MainWindow {
         Self {
             path_bar: cx.new(|cx| PathBar::init(cx, state.clone())),
             data_table: cx.new(|cx| DataTable::new(state.clone())),
-            preview: cx.new(|cx| Preview::init(state.clone())),
+            quick_preview: cx.new(|cx| QuickPreview::init(state.clone())),
             state,
             focus,
         }
@@ -37,6 +37,8 @@ impl Render for MainWindow {
             // TODO: move this onto the data view
             .on_key_down({
                 let state = self.state.clone();
+                let preview = self.quick_preview.clone();
+
                 move |event, _, cx| {
                     let modifier =
                         event.keystroke.modifiers.platform || event.keystroke.modifiers.shift; // TODO: Make this better
@@ -52,7 +54,21 @@ impl Render for MainWindow {
                             state.update(cx, |state, cx| state.go_up(cx));
                         }
                         "down" if modifier => {
-                            println!("TODO"); // TODO: Implement this like Finder
+                            let s = state.read(cx);
+                            if let Some(selection) = s.selected() {
+                                let node = s.nodes().get(selection).unwrap().clone();
+
+                                open_node(&state, cx, node, false);
+                            }
+                        }
+                        // TODO: How to navigate forward in history stack with keyboard????
+                        "o" if modifier => {
+                            let s = state.read(cx);
+                            if let Some(selection) = s.selected() {
+                                let node = s.nodes().get(selection).unwrap().clone();
+
+                                open_node(&state, cx, node, true);
+                            }
                         }
                         "up" => {
                             state.update(cx, |state, cx| state.back_selected(cx));
@@ -64,18 +80,10 @@ impl Render for MainWindow {
                             state.update(cx, |state, cx| state.clear_selection(cx));
                         }
                         "enter" => {
-                            let s = state.read(cx);
-                            if let Some(selection) = s.selected() {
-                                let node = s.nodes().get(selection).unwrap().clone();
-
-                                open_node(
-                                    &state,
-                                    cx,
-                                    node,
-                                    event.keystroke.modifiers.platform
-                                        || event.keystroke.modifiers.control,
-                                );
-                            }
+                            // TODO: Implement rename
+                        }
+                        "space" => {
+                            preview.update(cx, |s, cx| s.toggle(cx));
                         }
                         _ => {}
                     }
@@ -97,9 +105,9 @@ impl Render for MainWindow {
                             .size_full()
                             .child(self.path_bar.clone())
                             .child(self.data_table.clone())
-                            .child(self.preview.clone()),
+                            .child(self.quick_preview.clone()),
                     ),
             )
-            .child(self.preview.clone())
+            .child(self.quick_preview.clone())
     }
 }

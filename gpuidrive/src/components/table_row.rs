@@ -52,8 +52,6 @@ impl RenderOnce for TableRow {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
         // let this = self.state.read(cx).nodes().get(self.ix).unwrap(); // TODO
 
-        if Some(self.ix) == self.state.read(cx).selected() {}
-
         div()
             .id(self.ix) // TODO: Should this be scoped to `TableRow` component instance??
             .flex()
