@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use gpui::*;
+use gpui::{prelude::FluentBuilder, *};
 use human_bytes::human_bytes;
 use opener::open;
 
@@ -11,21 +11,22 @@ pub struct TableRow {
     ix: usize,
     node: Rc<Node>,
     selected: bool,
-    on_click: Box<dyn Fn(&Node, &ClickEvent, &mut App) + 'static>,
+    on_click: Option<Box<dyn Fn(&ClickEvent, &mut Window, &mut App) + 'static>>,
 }
 
 impl TableRow {
-    pub fn new(
-        ix: usize,
-        node: Rc<Node>,
-        on_click: Box<dyn Fn(&Node, &ClickEvent, &mut App) + 'static>,
-    ) -> Self {
+    pub fn new(ix: usize, node: Rc<Node>, selected: bool) -> Self {
         Self {
             ix,
             node,
-            selected: false,
-            on_click,
+            selected,
+            on_click: None,
         }
+    }
+
+    pub fn on_click(mut self, f: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static) -> Self {
+        self.on_click = Some(Box::new(f));
+        self
     }
 
     fn render_cell(
@@ -77,8 +78,8 @@ impl RenderOnce for TableRow {
             .px_2()
             .w_full()
             .children(FIELDS.map(|(key, width)| self.render_cell(key, relative(width), cx)))
-            .on_click(move |event, _, cx| {
-                (self.on_click)(&self.node, event, cx);
+            .when_some(self.on_click, move |this, on_click| {
+                this.cursor_pointer().on_click(on_click)
             })
     }
 }

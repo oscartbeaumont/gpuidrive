@@ -134,11 +134,18 @@ impl Render for DataTable {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let entity = cx.entity();
 
+        // let selected = cx.new(|cx| {
+        //     cx.observe(&self.state, |this, state, cx| {}).detach();
+
+        //     None::<usize>
+        // });
+
         cx.subscribe(&self.state, |this, state, _: &FocusSelection, cx| {
             let selection = state.read(cx).selected();
             if let Some(selection) = selection {
                 this.scroll.scroll_to_item(selection, ScrollStrategy::Top);
             }
+            cx.notify();
         })
         .detach();
 
@@ -168,21 +175,29 @@ impl Render for DataTable {
                                     move |this, range, _, cx| {
                                         this.visible_range = range.clone();
                                         let mut items = Vec::with_capacity(range.end - range.start);
-                                        let mut nodes = this.state.read(cx).nodes().iter();
+                                        let nodes = this.state.read(cx).nodes();
                                         for i in range {
-                                            if let Some(node) = nodes.next() {
+                                            if let Some(node) = Some(nodes[i].clone()) {
                                                 let s = this.state.clone();
-                                                items.push(TableRow::new(
-                                                    i,
-                                                    node.clone(),
-                                                    Box::new(move |node, event, cx| {
+                                                items.push(
+                                                    TableRow::new(
+                                                        i,
+                                                        node.clone(),
+                                                        s.read(cx)
+                                                            .selected()
+                                                            .map(|s| s == i)
+                                                            .unwrap_or(false),
+                                                    )
+                                                    .on_click(move |event, _, cx| {
                                                         let modifier =
                                                             event.down.modifiers.platform
                                                                 || event.down.modifiers.shift; // TODO: Make this better
 
+                                                        println!("{:?}", event);
+
                                                         open_node(&s, cx, &node, modifier);
                                                     }),
-                                                ));
+                                                );
                                             }
                                         }
 

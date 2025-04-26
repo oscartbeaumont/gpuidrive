@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{rc::Rc, time::Duration};
 
 use gpui::*;
 use opener::open;
@@ -6,23 +6,24 @@ use opener::open;
 use crate::state::{Node, NodeKind, State};
 
 pub struct QuickPreview {
-    state: Entity<State>,
-    visible: bool,
+    node: Option<Rc<Node>>,
+    toggle: bool,
 }
 
 impl QuickPreview {
-    pub fn init(state: Entity<State>) -> Self {
+    pub fn init() -> Self {
         Self {
-            state,
-            visible: false,
+            node: None,
+            toggle: false,
         }
     }
 
-    pub fn toggle(&mut self, cx: &mut Context<Self>) {
-        if self.state.read(cx).selected().is_some() {
-            self.visible = !self.visible;
-            cx.notify();
-        }
+    pub fn set(&mut self, node: Option<Rc<Node>>) {
+        self.node = node;
+    }
+
+    pub fn toggle(&mut self) {
+        self.toggle = !self.toggle;
     }
 }
 
@@ -32,15 +33,15 @@ impl Render for QuickPreview {
         window: &mut gpui::Window,
         cx: &mut gpui::Context<Self>,
     ) -> impl gpui::IntoElement {
-        if !self.visible {
+        println!("{:?} {:?}", self.toggle, self.node);
+
+        if !self.toggle {
             return div().into_any();
         }
-        let state = self.state.read(cx);
-        let Some(selected) = state.selected() else {
-            self.visible = false;
+        let Some(node) = self.node.clone() else {
+            self.toggle = false;
             return div().into_any();
         };
-        let node = state.nodes().get(selected).unwrap().clone();
 
         div()
             .with_animation(

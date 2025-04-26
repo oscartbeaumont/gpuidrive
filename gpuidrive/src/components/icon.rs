@@ -13,16 +13,18 @@ pub enum Icon {
 
 impl RenderOnce for Icon {
     fn render(self, _window: &mut Window, _: &mut App) -> impl IntoElement {
-        let todo = include_str!("../../icons/PhFile.svg");
-        println!("{:?}", todo);
+        // let todo = include_str!("../../icons/PhFile.svg");
+        // println!("{:?}", todo);
 
-        let todo = ImageSource::Resource(Resource::Embedded(SharedString::new(todo)));
+        // let todo = ImageSource::Resource(Resource::Embedded(SharedString::new(todo)));
         //
         // let todo = ImageSource::Resource(Resource::Path(
         //     PathBuf::from("./gpuidrive/icon/PhFile.svg").into(),
         // ));
 
         // ./gpuidrive/icons/PhFile.svg"
-        img(todo).text_color(black()).size_8()
+        img("./gpuidrive/icons/PhFile.svg")
+            .text_color(black())
+            .size_8()
     }
 }

@@ -24,7 +24,15 @@ impl MainWindow {
         Self {
             path_bar: cx.new(|cx| PathBar::init(cx, state.clone())),
             data_table: cx.new(|cx| DataTable::new(state.clone())),
-            quick_preview: cx.new(|cx| QuickPreview::init(state.clone())),
+            quick_preview: cx.new(|cx| {
+                cx.observe(&state, |quick_preview: &mut QuickPreview, state, cx| {
+                    let state = state.read(cx);
+                    quick_preview.set(state.selected().and_then(|s| state.nodes().get(s)).cloned());
+                })
+                .detach();
+
+                QuickPreview::init()
+            }),
             state,
             focus,
         }
@@ -83,7 +91,10 @@ impl Render for MainWindow {
                             // TODO: Implement rename
                         }
                         "space" => {
-                            preview.update(cx, |s, cx| s.toggle(cx));
+                            preview.update(cx, |s, cx| {
+                                s.toggle();
+                                cx.notify();
+                            });
                         }
                         _ => {}
                     }
