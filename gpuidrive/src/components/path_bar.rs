@@ -7,7 +7,7 @@ use crate::{
     state::{PathChange, State},
 };
 
-use super::{button, button2};
+use super::{Icon, button, button2};
 
 pub struct PathBar {
     state: Entity<State>,
@@ -84,5 +84,15 @@ impl Render for PathBar {
                     state.update(cx, |state, cx| state.go_forward(cx));
                 }
             }))
+            .child(Icon::PhFile)
+        // svg()
+        //     .path("./gpuidrive/icons/PhFile.svg")
+        //     .size_8()
+        //     .text_color(black())
+        //     .id("PhFile"),
+        // img(ImageSource::Resource(Resource::Embedded(
+        //     SharedString::new(todo),
+        // )))
+        // ImageSource::Resource(PH_FILE.clone()))
     }
 }

@@ -48,7 +48,7 @@ impl State {
     pub fn init() -> Self {
         let current = PathBuf::from("/Users/oscar/Desktop"); // TODO: Don't hardcode username
         let current = PathBuf::from("/Users/oscar/Library/pnpm/store/v10/files"); // TODO
-        let current = PathBuf::from("/Users/oscar/Desktop/sdtest"); // TODO
+        // let current = PathBuf::from("/Users/oscar/Desktop/sdtest"); // TODO
 
         let mut this = Self {
             nodes: Default::default(),

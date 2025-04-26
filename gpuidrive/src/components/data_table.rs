@@ -1,17 +1,11 @@
-use std::{
-    ops::Range,
-    path::PathBuf,
-    rc::Rc,
-    time::{Duration, Instant},
-};
+use std::ops::Range;
 
 use gpui::*;
 
-use crate::state::{FocusSelection, Node, State};
+use crate::state::{FocusSelection, State};
 
 use super::{TableRow, render_titles};
 
-const TOTAL_ITEMS: usize = 10000;
 const SCROLLBAR_THUMB_WIDTH: Pixels = px(8.);
 const SCROLLBAR_THUMB_HEIGHT: Pixels = px(100.);
 
@@ -149,20 +143,11 @@ impl Render for DataTable {
         .detach();
 
         div()
-            // .font_family(".SystemUIFont")
-            // .bg(gpui::red())
+            .bg(gpui::white())
             .text_sm()
             .size_full()
-            // .p_4()
-            // .gap_2()
             .flex()
             .flex_col()
-            // // TODO
-            // .child(format!(
-            //     "Total {} items, visible range: {:?}",
-            //     self.state.read(cx).nodes().len(),
-            //     self.visible_range
-            // ))
             .child(
                 div()
                     .flex()

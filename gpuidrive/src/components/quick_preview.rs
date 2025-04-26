@@ -80,6 +80,7 @@ impl Render for QuickPreview {
                                             NodeKind::File => match node.path.extension() {
                                                 // TODO: Wayyy smarter matching
                                                 // TODO: Support more file types (video, audio, 3D model)
+                                                // TODO: Use gpui::Img::extensions() for image detection
                                                 Some(s) if s == "png" => image_preview(&node),
                                                 Some(s) if s == "txt" => text_preview(&node),
                                                 _ => {
@@ -105,6 +106,8 @@ fn text_preview(node: &Node) -> Div {
     // TODO: Handle non-UTF8 file content
     // TODO: We should probs be caching this between renders
     let content = std::fs::read_to_string(&node.path).unwrap();
+
+    // ImageAssetLoader
 
     div()
         .flex()

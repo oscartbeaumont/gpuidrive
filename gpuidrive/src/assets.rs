@@ -60,3 +60,12 @@ impl Asset for LoadImageWithParameters {
         }
     }
 }
+
+// TODO: Do this properly by embedding the whole folder in a typesafe manner.
+// TODO: Also avoid allocating the resource each time it's used.
+
+// pub static PH_FILE: Resource =
+//     Resource::Embedded(SharedString::new_static(include_str!("./icons/PhFile.svg")));
+// pub static PH_FOLDER: Resource = Resource::Embedded(SharedString::new_static(include_str!(
+//     "../icons/PhFolder.svg"
+// )));
