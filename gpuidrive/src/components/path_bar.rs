@@ -69,7 +69,7 @@ impl Render for PathBar {
             .child(button2("Up", !self.state.read(cx).can_go_up(), {
                 let state = self.state.clone();
                 move |_, cx| {
-                    state.update(cx, |state, cx| state.up(cx));
+                    state.update(cx, |state, cx| state.go_up(cx));
                 }
             }))
             .child(button2("Back", !self.state.read(cx).can_go_back(), {

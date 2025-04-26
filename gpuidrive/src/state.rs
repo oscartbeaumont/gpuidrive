@@ -182,7 +182,7 @@ impl State {
         self.current.parent().is_some()
     }
 
-    pub fn up(&mut self, cx: &mut Context<Self>) {
+    pub fn go_up(&mut self, cx: &mut Context<Self>) {
         if let Some(parent) = self.current.parent() {
             self.set_path(cx, parent.to_path_buf());
         }

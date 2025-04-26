@@ -37,31 +37,48 @@ impl Render for MainWindow {
             // TODO: move this onto the data view
             .on_key_down({
                 let state = self.state.clone();
-                move |event, _, cx| match &*event.keystroke.key {
-                    "up" => {
-                        state.update(cx, |state, cx| state.back_selected(cx));
-                    }
-                    "down" => {
-                        state.update(cx, |state, cx| state.next_selected(cx));
-                    }
-                    "escape" => {
-                        state.update(cx, |state, cx| state.clear_selection(cx));
-                    }
-                    "enter" => {
-                        let s = state.read(cx);
-                        if let Some(selection) = s.selected() {
-                            let node = s.nodes().get(selection).unwrap().clone();
+                move |event, _, cx| {
+                    let modifier =
+                        event.keystroke.modifiers.platform || event.keystroke.modifiers.shift; // TODO: Make this better
 
-                            open_node(
-                                &state,
-                                cx,
-                                node,
-                                event.keystroke.modifiers.platform
-                                    || event.keystroke.modifiers.control,
-                            );
+                    match &*event.keystroke.key {
+                        "[" if modifier => {
+                            state.update(cx, |state, cx| state.go_back(cx));
                         }
+                        "]" if modifier => {
+                            state.update(cx, |state, cx| state.go_forward(cx));
+                        }
+                        "up" if modifier => {
+                            state.update(cx, |state, cx| state.go_up(cx));
+                        }
+                        "down" if modifier => {
+                            println!("TODO"); // TODO: Implement this like Finder
+                        }
+                        "up" => {
+                            state.update(cx, |state, cx| state.back_selected(cx));
+                        }
+                        "down" => {
+                            state.update(cx, |state, cx| state.next_selected(cx));
+                        }
+                        "escape" => {
+                            state.update(cx, |state, cx| state.clear_selection(cx));
+                        }
+                        "enter" => {
+                            let s = state.read(cx);
+                            if let Some(selection) = s.selected() {
+                                let node = s.nodes().get(selection).unwrap().clone();
+
+                                open_node(
+                                    &state,
+                                    cx,
+                                    node,
+                                    event.keystroke.modifiers.platform
+                                        || event.keystroke.modifiers.control,
+                                );
+                            }
+                        }
+                        _ => {}
                     }
-                    _ => {}
                 }
             })
             .font_family(".SystemUIFont")
