@@ -4,6 +4,7 @@ authors = ["Oscar Beaumont <oscar@otbeaumont.me>"]
 version = "0.0.0"
 edition = "2024"
 publish = false
+default-run = "gpuidrive"
 
 [package.metadata.packager]
 before-packaging-command = "cargo build --release"

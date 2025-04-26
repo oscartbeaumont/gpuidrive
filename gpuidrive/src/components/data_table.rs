@@ -1,10 +1,10 @@
-use std::ops::Range;
+use std::{ops::Range, rc::Rc};
 
 use gpui::*;
 
 use crate::state::{FocusSelection, State};
 
-use super::{TableRow, render_titles};
+use super::{TableRow, open_node, render_titles};
 
 const SCROLLBAR_THUMB_WIDTH: Pixels = px(8.);
 const SCROLLBAR_THUMB_HEIGHT: Pixels = px(100.);
@@ -171,7 +171,18 @@ impl Render for DataTable {
                                         let mut nodes = this.state.read(cx).nodes().iter();
                                         for i in range {
                                             if let Some(node) = nodes.next() {
-                                                items.push(TableRow::new(i, this.state.clone()));
+                                                let s = this.state.clone();
+                                                items.push(TableRow::new(
+                                                    i,
+                                                    node.clone(),
+                                                    Box::new(move |node, event, cx| {
+                                                        let modifier =
+                                                            event.down.modifiers.platform
+                                                                || event.down.modifiers.shift; // TODO: Make this better
+
+                                                        open_node(&s, cx, &node, modifier);
+                                                    }),
+                                                ));
                                             }
                                         }
 

@@ -2635,8 +2635,10 @@ checksum = "d0263a3d970d5c054ed9312c0057b4f3bde9c0b33836d3637361d4a9e6e7a408"
 name = "indexer"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "num_cpus",
  "rayon",
+ "walkdir",
 ]
 
 [[package]]

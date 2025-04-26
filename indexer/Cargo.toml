@@ -6,3 +6,5 @@ edition = "2024"
 [dependencies]
 rayon = "1.8"
 num_cpus = "1.16"
+walkdir = "2.5.0"
+anyhow = "1.0.98"

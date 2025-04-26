@@ -1,153 +1,102 @@
-use std::collections::HashMap;
-use std::error::Error;
-use std::fmt;
-use std::fs;
-use std::io;
-use std::path::{Path, PathBuf};
-use std::time::Instant;
+use anyhow::Result;
+use rayon::prelude::*;
+use std::{
+    path::{Path, PathBuf},
+    sync::atomic::{AtomicUsize, Ordering},
+};
+use walkdir::WalkDir;
 
-// Custom error type to handle different kinds of errors
-#[derive(Debug)]
-enum FileCollectionError {
-    IoError(io::Error, PathBuf),
-    PermissionDenied(PathBuf),
-    InvalidFileName(PathBuf),
-    Other(String),
+/// Represents the results of counting files in a directory
+#[derive(Debug, Clone, Copy)]
+pub struct FileCountResult {
+    /// Number of files found
+    pub file_count: usize,
+    /// Number of filesystem errors encountered
+    pub error_count: usize,
 }
 
-impl fmt::Display for FileCollectionError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            FileCollectionError::IoError(err, path) => {
-                write!(f, "IO error for path {:?}: {}", path, err)
-            }
-            FileCollectionError::PermissionDenied(path) => {
-                write!(f, "Permission denied for path {:?}", path)
-            }
-            FileCollectionError::InvalidFileName(path) => {
-                write!(f, "Invalid file name at path {:?}", path)
-            }
-            FileCollectionError::Other(msg) => write!(f, "{}", msg),
-        }
-    }
-}
+/// Counts files in a directory recursively using parallel processing
+///
+/// This function will traverse the given directory recursively and count:
+/// - Total number of files (not directories)
+/// - Number of filesystem errors encountered during traversal
+///
+/// # Arguments
+///
+/// * `path` - The directory path to count files in
+///
+/// # Returns
+///
+/// Returns a `Result` containing `FileCountResult` with the counts
+///
+/// # Example
+///
+/// ```rust
+/// use gpuidrive::file_counter::count_files;
+///
+/// let result = count_files("some/directory").unwrap();
+/// println!("Found {} files with {} errors", result.file_count, result.error_count);
+/// ```
+pub fn count_files<P: AsRef<Path>>(path: P) -> Result<FileCountResult> {
+    let file_count = AtomicUsize::new(0);
+    let error_count = AtomicUsize::new(0);
 
-impl Error for FileCollectionError {}
+    // Create an iterator over the directory entries
+    let walker = WalkDir::new(path).into_iter();
 
-#[derive(Debug)]
-struct FileInfo {
-    size: u64,
-    path: PathBuf,
-}
-
-struct FileCollection {
-    files: HashMap<String, FileInfo>,
-    errors: Vec<FileCollectionError>,
-}
-
-impl FileCollection {
-    fn new() -> Self {
-        FileCollection {
-            files: HashMap::new(),
-            errors: Vec::new(),
-        }
-    }
-
-    fn add_error(&mut self, error: FileCollectionError) {
-        self.errors.push(error);
-    }
-
-    fn collect_files(&mut self, start_path: &Path) {
-        self.collect_files_recursive(start_path);
-    }
-
-    fn collect_files_recursive(&mut self, dir: &Path) {
-        // Handle directory access
-        let read_dir = match fs::read_dir(dir) {
-            Ok(entries) => entries,
-            Err(err) => {
-                let error = if err.kind() == io::ErrorKind::PermissionDenied {
-                    FileCollectionError::PermissionDenied(dir.to_path_buf())
-                } else {
-                    FileCollectionError::IoError(err, dir.to_path_buf())
-                };
-                self.add_error(error);
-                return;
-            }
-        };
-
-        // Process each entry
-        for entry_result in read_dir {
-            match entry_result {
-                Ok(entry) => {
-                    let path = entry.path();
-
-                    if path.is_dir() {
-                        self.collect_files_recursive(&path);
-                    } else {
-                        self.process_file(&path);
-                    }
-                }
-                Err(err) => {
-                    self.add_error(FileCollectionError::IoError(err, dir.to_path_buf()));
+    // Process entries in parallel
+    walker.par_bridge().for_each(|entry| {
+        match entry {
+            Ok(entry) => {
+                // Only count files, not directories
+                if entry.file_type().is_file() {
+                    file_count.fetch_add(1, Ordering::Relaxed);
                 }
             }
-        }
-    }
-
-    fn process_file(&mut self, path: &Path) {
-        // Get file name
-        let file_name = match path.file_name().and_then(|n| n.to_str()) {
-            Some(name) => name.to_string(),
-            None => {
-                self.add_error(FileCollectionError::InvalidFileName(path.to_path_buf()));
-                return;
-            }
-        };
-
-        // Get file metadata
-        match fs::metadata(path) {
-            Ok(metadata) => {
-                self.files.insert(
-                    file_name,
-                    FileInfo {
-                        size: metadata.len(),
-                        path: path.to_path_buf(),
-                    },
-                );
-            }
-            Err(err) => {
-                self.add_error(FileCollectionError::IoError(err, path.to_path_buf()));
+            Err(_) => {
+                error_count.fetch_add(1, Ordering::Relaxed);
             }
         }
-    }
+    });
 
-    fn print_summary(&self) {
-        println!("\n=== File Collection Summary ===");
-        println!("Successfully processed {} files:", self.files.len());
-        for (name, info) in &self.files {
-            println!("  {} ({} bytes)", name, info.size);
-            println!("    Path: {:?}", info.path);
-        }
-
-        if !self.errors.is_empty() {
-            println!("\nEncountered {} errors:", self.errors.len());
-            for (i, error) in self.errors.iter().enumerate() {
-                println!("{}. {}", i + 1, error);
-            }
-        }
-    }
+    Ok(FileCountResult {
+        file_count: file_count.load(Ordering::Relaxed),
+        error_count: error_count.load(Ordering::Relaxed),
+    })
 }
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use std::fs::{self, File};
+//     use std::io;
+//     use tempfile::tempdir;
+
+//     #[test]
+//     fn test_count_files() -> io::Result<()> {
+//         // Create a temporary directory structure
+//         let temp_dir = tempdir()?;
+//         let temp_path = temp_dir.path();
+
+//         // Create some test files and directories
+//         File::create(temp_path.join("file1.txt"))?;
+//         File::create(temp_path.join("file2.txt"))?;
+
+//         let subdir = temp_path.join("subdir");
+//         fs::create_dir(&subdir)?;
+//         File::create(subdir.join("file3.txt"))?;
+
+//         // Count files
+//         let result = count_files(temp_path).unwrap();
+
+//         assert_eq!(result.file_count, 3);
+//         assert_eq!(result.error_count, 0);
+
+//         Ok(())
+//     }
+// }
 
 fn main() {
-    println!("Starting file collection...");
-    let now = Instant::now();
-
-    let start_path = Path::new("/");
-    let mut collection = FileCollection::new();
-
-    collection.collect_files(start_path);
-    // collection.print_summary();
-
-    println!("DONE {:?}", now);
+    let result = count_files(PathBuf::from("/Users/oscar")).unwrap();
+    println!("{:?}", result);
 }

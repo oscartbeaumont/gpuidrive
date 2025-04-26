@@ -58,7 +58,7 @@ impl Render for MainWindow {
                             if let Some(selection) = s.selected() {
                                 let node = s.nodes().get(selection).unwrap().clone();
 
-                                open_node(&state, cx, node, false);
+                                open_node(&state, cx, &node, false);
                             }
                         }
                         // TODO: How to navigate forward in history stack with keyboard????
@@ -67,7 +67,7 @@ impl Render for MainWindow {
                             if let Some(selection) = s.selected() {
                                 let node = s.nodes().get(selection).unwrap().clone();
 
-                                open_node(&state, cx, node, true);
+                                open_node(&state, cx, &node, true);
                             }
                         }
                         "up" => {

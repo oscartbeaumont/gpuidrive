@@ -7,7 +7,7 @@ use crate::{
     state::{PathChange, State},
 };
 
-use super::{Icon, button, button2};
+use super::{Icon, OnChange, button, button2};
 
 pub struct PathBar {
     state: Entity<State>,
@@ -16,40 +16,33 @@ pub struct PathBar {
 
 impl PathBar {
     pub fn init(cx: &mut Context<Self>, state: Entity<State>) -> Self {
-        let text_input = cx.new(|cx| TextInput {
-            focus_handle: cx.focus_handle(),
-            content: SharedString::new(state.read(cx).path().to_str().unwrap().to_string()), // TODO: Utf-8 strings
-            placeholder: "Type here...".into(),
-            selected_range: 0..0,
-            selection_reversed: false,
-            marked_range: None,
-            last_layout: None,
-            last_bounds: None,
-            is_selecting: false,
-        });
+        let text_input = cx.new(|cx: &mut Context<TextInput>| {
+            cx.subscribe(&state, |subscriber, emitter, event: &PathChange, cx| {
+                subscriber.content =
+                    SharedString::new(emitter.read(cx).path().to_str().unwrap().to_string()); // TODO: Utf-8 strings
+            })
+            .detach();
 
-        // TODO: this is a 2 way data binding which is cringe
+            TextInput {
+                focus_handle: cx.focus_handle(),
+                content: SharedString::new(state.read(cx).path().to_str().unwrap().to_string()), // TODO: Utf-8 strings
+                placeholder: "Type here...".into(),
+                selected_range: 0..0,
+                selection_reversed: false,
+                marked_range: None,
+                last_layout: None,
+                last_bounds: None,
+                is_selecting: false,
+            }
+        });
 
         cx.subscribe(&text_input, {
             let state = state.clone();
 
-            move |subscriber, _emitter, event, cx| {
+            move |subscriber, _emitter, event: &OnChange, cx| {
                 state.update(cx, |state, cx| {
                     // TODO: This won't handle non-utf8 paths
                     state.set_path(cx, PathBuf::from(event.0.to_string()));
-                });
-            }
-        })
-        .detach();
-
-        cx.subscribe(&state, {
-            let state = state.clone();
-            let text_input = text_input.clone();
-
-            move |subscriber, _emitter, event: &PathChange, cx| {
-                let path = state.read(cx).path().to_str().unwrap().to_string();
-                text_input.update(cx, |text_input, cx| {
-                    text_input.content = SharedString::new(path);
                 });
             }
         })

@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use gpui::*;
 use human_bytes::human_bytes;
 use opener::open;
@@ -7,12 +9,23 @@ use crate::state::{Node, NodeKind, State};
 #[derive(IntoElement)]
 pub struct TableRow {
     ix: usize,
-    state: Entity<State>,
+    node: Rc<Node>,
+    selected: bool,
+    on_click: Box<dyn Fn(&Node, &ClickEvent, &mut App) + 'static>,
 }
 
 impl TableRow {
-    pub fn new(ix: usize, state: Entity<State>) -> Self {
-        Self { ix, state }
+    pub fn new(
+        ix: usize,
+        node: Rc<Node>,
+        on_click: Box<dyn Fn(&Node, &ClickEvent, &mut App) + 'static>,
+    ) -> Self {
+        Self {
+            ix,
+            node,
+            selected: false,
+            on_click,
+        }
     }
 
     fn render_cell(
@@ -21,20 +34,17 @@ impl TableRow {
         width: DefiniteLength,
         cx: &mut App,
     ) -> impl IntoElement + use<> {
-        // TODO: Don't do this on a per-cell basis
-        let this = self.state.read(cx).nodes().get(self.ix).unwrap(); // TODO
-
         div()
             .whitespace_nowrap()
             .truncate()
             .w(width)
             .px_1()
             .child(match key {
-                "name" => div().child(this.name.to_string_lossy().to_string()),
-                "kind" => div().child(format!("{:?}", this.kind)),
-                "size" => div().child(human_bytes(this.size as f64)), // TODO: This cast is bad
-                "created" => div().child(this.created.format("%B %d, %Y").to_string()),
-                "modified" => div().child(this.modified.format("%B %d, %Y").to_string()),
+                "name" => div().child(self.node.name.to_string_lossy().to_string()),
+                "kind" => div().child(format!("{:?}", self.node.kind)),
+                "size" => div().child(human_bytes(self.node.size as f64)), // TODO: This cast is bad
+                "created" => div().child(self.node.created.format("%B %d, %Y").to_string()),
+                "modified" => div().child(self.node.modified.format("%B %d, %Y").to_string()),
                 _ => div().child("--"),
             })
     }
@@ -50,15 +60,13 @@ const FIELDS: [(&str, f32); 5] = [
 
 impl RenderOnce for TableRow {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
-        // let this = self.state.read(cx).nodes().get(self.ix).unwrap(); // TODO
-
         div()
             .id(self.ix) // TODO: Should this be scoped to `TableRow` component instance??
             .flex()
             .flex_row()
             .border_b_1()
             .border_color(rgb(0xE0E0E0))
-            .bg(if Some(self.ix) == self.state.read(cx).selected() {
+            .bg(if self.selected {
                 rgb(0xbababa)
             } else if self.ix % 2 == 0 {
                 rgb(0xFFFFFF)
@@ -70,19 +78,12 @@ impl RenderOnce for TableRow {
             .w_full()
             .children(FIELDS.map(|(key, width)| self.render_cell(key, relative(width), cx)))
             .on_click(move |event, _, cx| {
-                let node = self.state.read(cx).nodes().get(self.ix).unwrap().clone();
-
-                open_node(
-                    &self.state,
-                    cx,
-                    node,
-                    event.down.modifiers.platform || event.down.modifiers.control,
-                );
+                (self.on_click)(&self.node, event, cx);
             })
     }
 }
 
-pub fn open_node(state: &Entity<State>, cx: &mut App, node: Node, force: bool) {
+pub fn open_node(state: &Entity<State>, cx: &mut App, node: &Node, force: bool) {
     match node.kind {
         NodeKind::Directory if !force => {
             let path = node.path.clone();

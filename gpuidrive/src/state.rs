@@ -1,10 +1,10 @@
-use std::{ffi::OsString, fs::FileType, os::unix::fs::MetadataExt, path::PathBuf};
+use std::{ffi::OsString, fs::FileType, os::unix::fs::MetadataExt, path::PathBuf, rc::Rc};
 
 use chrono::{DateTime, Local};
 use gpui::{Context, EventEmitter};
 
 pub struct State {
-    nodes: Vec<Node>,
+    nodes: Vec<Rc<Node>>,
 
     backward: Vec<PathBuf>,
     forward: Vec<PathBuf>,
@@ -65,7 +65,7 @@ impl State {
         &self.current
     }
 
-    pub fn nodes(&self) -> &[Node] {
+    pub fn nodes(&self) -> &[Rc<Node>] {
         &self.nodes
     }
 
@@ -131,14 +131,14 @@ impl State {
                         let entry = entry.unwrap();
                         let metadata = entry.metadata().unwrap();
 
-                        Node {
+                        Rc::new(Node {
                             path: entry.path(),
                             name: entry.file_name(),
                             kind: entry.file_type().unwrap().into(),
                             size: metadata.size(),
                             created: metadata.created().unwrap().into(),
                             modified: metadata.modified().unwrap().into(),
-                        }
+                        })
                     })
                     .collect();
             }
