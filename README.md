@@ -20,4 +20,4 @@ cargo run -p gpuidrive --release
 
 ## Demo
 
-[![Demo video](.github/demo.mov)
+https://github.com/user-attachments/assets/78444d08-720d-4227-8846-12a972a17eea
