@@ -20,4 +20,4 @@ cargo run -p gpuidrive --release
 
 ## Demo
 
-[![Demo video](./.github/demo.mov)
+[![Demo video](.github/demo.mov)
