@@ -116,8 +116,15 @@ impl State {
         }
     }
 
+    pub fn set_selection(&mut self, cx: &mut Context<Self>, selection: usize) {
+        self.selected = Some(selection);
+        cx.emit(FocusSelection);
+        cx.notify();
+    }
+
     pub fn clear_selection(&mut self, cx: &mut Context<Self>) {
         self.selected = None;
+        // cx.emit(FocusSelection); // TODO
         cx.notify();
     }
 

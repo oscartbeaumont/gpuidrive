@@ -33,8 +33,6 @@ impl Render for QuickPreview {
         window: &mut gpui::Window,
         cx: &mut gpui::Context<Self>,
     ) -> impl gpui::IntoElement {
-        println!("{:?} {:?}", self.toggle, self.node);
-
         if !self.toggle {
             return div().into_any();
         }

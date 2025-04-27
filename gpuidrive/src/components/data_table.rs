@@ -189,13 +189,17 @@ impl Render for DataTable {
                                                             .unwrap_or(false),
                                                     )
                                                     .on_click(move |event, _, cx| {
-                                                        let modifier =
-                                                            event.down.modifiers.platform
-                                                                || event.down.modifiers.shift; // TODO: Make this better
+                                                        if event.down.click_count == 1 {
+                                                            s.update(cx, |s, cx| {
+                                                                s.set_selection(cx, i)
+                                                            });
+                                                        } else {
+                                                            let modifier =
+                                                                event.down.modifiers.platform
+                                                                    || event.down.modifiers.shift; // TODO: Make this better
 
-                                                        println!("{:?}", event);
-
-                                                        open_node(&s, cx, &node, modifier);
+                                                            open_node(&s, cx, &node, modifier);
+                                                        }
                                                     }),
                                                 );
                                             }
