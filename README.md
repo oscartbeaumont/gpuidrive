@@ -1,17 +1,23 @@
 # GPUIDrive
 
-A really really really bad Spacedrive clone built with GPUI that I built in a day.
+A file manager built with [gpui](https://www.gpui.rs) that I built in a day.
 
 ## Why?
 
-The [Cap.so](https://cap.so?utm_source=gpuidrive) hackathon and to learn more about GPUI
+I built this for the [Cap.so](https://cap.so?utm_source=gpuidrive) internal hackathon to learn more about [gpui](https://www.gpui.rs).
+
+I really enjoyed building [Spacedrive](https://spacedrive.com) with [Tauri](https://tauri.app) but it's hard to make a webview feel as smooth as something native so I wanted to give it a try.
 
 ## But really why?
 
-GPUI is fast.
+[gpui](https://www.gpui.rs) is fast and cool.
 
 ## Usage
 
 ```rs
 cargo run -p gpuidrive --release
 ```
+
+## Demo
+
+[![Demo video](./.github/demo.mov)
